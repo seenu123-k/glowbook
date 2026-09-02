@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  CUSTOMER
+  SALON_OWNER
+  SALON_MANAGER
+  STAFF
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SalonStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum StaffStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  phone        String?
+  role         UserRole   @default(CUSTOMER)
+  status       UserStatus @default(ACTIVE)
+
+  ownedSalons       Salon[]       @relation("SalonOwner")
+  managedSalons     Salon[]       @relation("SalonManager")
+  staffProfiles     Staff[]
+  appointments      Appointment[] @relation("CustomerAppointments")
+  reviews           Review[]
+  refreshTokens     RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Salon {
+  id          String       @id @default(uuid())
+  ownerId     String
+  managerId   String?
+  name        String
+  slug        String       @unique
+  description String?      @db.Text
+  phone       String?
+  email       String?
+  address     String
+  city        String
+  state       String?
+  postalCode  String?
+  latitude    Decimal?     @db.Decimal(10, 7)
+  longitude   Decimal?     @db.Decimal(10, 7)
+  image       String?
+  rating      Decimal      @default(0) @db.Decimal(3, 2)
+  reviewCount Int          @default(0)
+  status      SalonStatus  @default(ACTIVE)
+
+  owner        User          @relation("SalonOwner", fields: [ownerId], references: [id])
+  manager      User?         @relation("SalonManager", fields: [managerId], references: [id])
+  services     Service[]
+  staff        Staff[]
+  workingHours WorkingHour[]
+  appointments Appointment[]
+  reviews      Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([managerId])
+  @@index([city])
+  @@index([status])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?   @db.Text
+  image       String?
+  status      Boolean   @default(true)
+
+  services Service[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id              String        @id @default(uuid())
+  salonId         String
+  categoryId      String
+  name            String
+  description     String?       @db.Text
+  price           Decimal       @db.Decimal(10, 2)
+  durationMinutes Int
+  image           String?
+  status          ServiceStatus @default(ACTIVE)
+
+  salon        Salon        @relation(fields: [salonId], references: [id])
+  category     Category     @relation(fields: [categoryId], references: [id])
+  appointments Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([salonId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model Staff {
+  id             String      @id @default(uuid())
+  userId         String?     @unique
+  salonId        String
+  name           String
+  bio            String?     @db.Text
+  specialization String?
+  profileImage   String?
+  experienceYears Int        @default(0)
+  status         StaffStatus @default(ACTIVE)
+
+  user          User?         @relation(fields: [userId], references: [id])
+  salon         Salon         @relation(fields: [salonId], references: [id])
+  workingHours  WorkingHour[]
+  leaves        StaffLeave[]
+  appointments  Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([salonId])
+  @@index([status])
+}
+
+model WorkingHour {
+  id         String  @id @default(uuid())
+  salonId    String
+  staffId    String?
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  isAvailable Boolean @default(true)
+
+  salon Salon @relation(fields: [salonId], references: [id])
+  staff Staff? @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([salonId, dayOfWeek])
+  @@index([staffId, dayOfWeek])
+}
+
+model StaffLeave {
+  id        String      @id @default(uuid())
+  staffId   String
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  status    LeaveStatus @default(APPROVED)
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId])
+  @@index([startDate, endDate])
+}
+
+model Appointment {
+  id                 String            @id @default(uuid())
+  customerId         String
+  salonId            String
+  serviceId          String
+  staffId            String
+  appointmentDate    DateTime
+  startTime          DateTime
+  endTime            DateTime
+  status             AppointmentStatus @default(PENDING)
+  price              Decimal           @db.Decimal(10, 2)
+  notes              String?           @db.Text
+  cancellationReason String?
+
+  customer User     @relation("CustomerAppointments", fields: [customerId], references: [id])
+  salon    Salon    @relation(fields: [salonId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+  staff    Staff    @relation(fields: [staffId], references: [id])
+  review   Review?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([salonId])
+  @@index([serviceId])
+  @@index([staffId])
+  @@index([appointmentDate])
+  @@index([startTime, endTime])
+  @@index([status])
+}
+
+model Review {
+  id            String       @id @default(uuid())
+  customerId    String
+  salonId       String
+  appointmentId String       @unique
+  rating        Int
+  comment       String?      @db.Text
+  status        ReviewStatus @default(PENDING)
+
+  customer    User        @relation(fields: [customerId], references: [id])
+  salon       Salon       @relation(fields: [salonId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([salonId])
+  @@index([status])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
