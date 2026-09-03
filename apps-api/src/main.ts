@@ -23,8 +23,8 @@ async function bootstrap() {
   // =========================
   app.enableCors({
   origin: [
-    'https://glowbook-oit5s6t8h-ram-6997.vercel.app',
-  ],
+  'https://glowbook-mauve.vercel.app',
+],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   credentials: true,
 });
