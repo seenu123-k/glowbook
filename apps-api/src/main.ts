@@ -21,7 +21,13 @@ async function bootstrap() {
   // =========================
   // CORS
   // =========================
-  app.enableCors();
+  app.enableCors({
+  origin: [
+    'https://glowbook-oit5s6t8h-ram-6997.vercel.app',
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  credentials: true,
+});
 
   // =========================
   // SWAGGER
