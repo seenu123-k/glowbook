@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Mail, Sparkles } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Sparkles,
+} from 'lucide-react';
 
 import api from '../services/api';
 
@@ -18,6 +24,7 @@ function Login() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,13 +50,8 @@ function Login() {
         throw new Error('Invalid login response from server.');
       }
 
-      // Save authentication details
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
-
-      // ==========================================
-      // ROLE-BASED REDIRECT
-      // ==========================================
 
       if (user.role === 'SALON_OWNER') {
         navigate('/dashboard', { replace: true });
@@ -61,7 +63,6 @@ function Login() {
         return;
       }
 
-      // CUSTOMER and any normal user
       navigate('/customer', { replace: true });
 
     } catch (err: any) {
@@ -76,7 +77,9 @@ function Login() {
       } else if (err?.message) {
         setError(err.message);
       } else {
-        setError('Login failed. Please check your email and password.');
+        setError(
+          'Login failed. Please check your email and password.',
+        );
       }
     } finally {
       setLoading(false);
@@ -90,9 +93,7 @@ function Login() {
 
         <div className="grid w-full overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
 
-          {/* =====================================
-              LEFT SIDE
-          ====================================== */}
+          {/* LEFT SIDE */}
 
           <div className="hidden bg-slate-900 p-12 text-white lg:block">
 
@@ -129,9 +130,7 @@ function Login() {
 
           </div>
 
-          {/* =====================================
-              RIGHT SIDE
-          ====================================== */}
+          {/* RIGHT SIDE */}
 
           <div className="p-8 sm:p-12">
 
@@ -167,9 +166,7 @@ function Login() {
 
               {error && (
                 <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-
                   {error}
-
                 </div>
               )}
 
@@ -227,7 +224,7 @@ function Login() {
                     />
 
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) =>
                         setPassword(e.target.value)
@@ -237,6 +234,27 @@ function Login() {
                       className="w-full outline-none"
                       required
                     />
+
+                    {/* SHOW / HIDE PASSWORD */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword((prev) => !prev)
+                      }
+                      className="shrink-0 text-slate-400 transition hover:text-slate-700"
+                      aria-label={
+                        showPassword
+                          ? 'Hide password'
+                          : 'Show password'
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff size={19} />
+                      ) : (
+                        <Eye size={19} />
+                      )}
+                    </button>
 
                   </div>
 
@@ -249,11 +267,9 @@ function Login() {
                   disabled={loading}
                   className="w-full rounded-xl bg-slate-950 py-3.5 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-
                   {loading
                     ? 'Signing in...'
                     : 'Sign in'}
-
                 </button>
 
               </form>

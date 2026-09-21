@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   ArrowRight,
@@ -8,7 +9,6 @@ import {
   MapPin,
   Phone,
   Search,
-  Scissors,
   ShieldCheck,
   Sparkles,
   Star,
@@ -32,10 +32,7 @@ interface DatabaseSalon {
   id: string;
   name: string;
   location?: string;
-  address?: string;
-  city?: string;
-  rating?: number | string;
-  reviewCount?: number;
+  rating?: number;
   reviews?: number;
   category?: string;
   image?: string;
@@ -45,9 +42,8 @@ interface DatabaseSalon {
 /*
 =========================================================
 STATIC SALONS
-
-Glow Beauty Salon comes from database.
-The other five are static display salons.
+Glow Beauty Salon is NOT included here.
+It comes from database.
 =========================================================
 */
 
@@ -96,6 +92,12 @@ const staticSalons: Salon[] = [
       'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=900&q=80',
   },
 
+  /*
+  =======================================================
+  NEW 6TH STATIC SALON
+  =======================================================
+  */
+
   {
     id: 'static-6',
     name: 'Royal Shine Salon',
@@ -108,66 +110,24 @@ const staticSalons: Salon[] = [
   },
 ];
 
-/*
-=========================================================
-SERVICES
-=========================================================
-*/
 
 const services = [
-  {
-    name: 'Hair Styling',
-    description:
-      'Professional haircuts, styling and treatments.',
-    image:
-      'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=900&q=85',
-  },
-
-  {
-    name: 'Hair Coloring',
-    description:
-      'Fresh colors and professional hair coloring.',
-    image:
-      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&q=85',
-  },
-
-  {
-    name: 'Facial & Skincare',
-    description:
-      'Relaxing facial treatments for healthy skin.',
-    image:
-      'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=900&q=85',
-  },
-
-  {
-    name: 'Manicure',
-    description:
-      'Beautiful nails with professional care.',
-    image:
-      'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=900&q=85',
-  },
-
-  {
-    name: 'Pedicure',
-    description:
-      'Comfortable and refreshing foot care.',
-    image:
-      'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=900&q=85',
-  },
-
-  {
-    name: 'Spa & Wellness',
-    description:
-      'Relax, refresh and enjoy a peaceful experience.',
-    image:
-      'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=900&q=85',
-  },
+  { name: 'Haircut', category: 'Hair & Styling', description: 'Professional haircut and styling.' },
+  { name: 'Hair Styling', category: 'Hair & Styling', description: 'Modern styling for every occasion.' },
+  { name: 'Facial', category: 'Skin Care', description: 'Relaxing facial and skin care treatment.' },
+  { name: 'Hair Color', category: 'Hair & Styling', description: 'Premium hair coloring and highlights.' },
+  { name: 'Bridal Styling', category: 'Bridal Beauty', description: 'Complete styling for your special day.' },
+  { name: 'Spa', category: 'Beauty & Wellness', description: 'Relax and refresh with a spa treatment.' },
 ];
 
 function Home() {
-  // =====================================================
-  // DATABASE SALON
-  // =====================================================
+  const navigate = useNavigate();
+
+  /*
+  =======================================================
+  DATABASE SALON
+  =======================================================
+  */
 
   const [databaseSalon, setDatabaseSalon] =
     useState<Salon | null>(null);
@@ -178,9 +138,11 @@ function Home() {
   const [salonError, setSalonError] =
     useState('');
 
-  // =====================================================
-  // SEARCH
-  // =====================================================
+  /*
+  =======================================================
+  SEARCH
+  =======================================================
+  */
 
   const [search, setSearch] =
     useState('');
@@ -188,128 +150,131 @@ function Home() {
   const [location, setLocation] =
     useState('All Locations');
 
-  // =====================================================
-  // LOAD GLOW BEAUTY SALON
-  // =====================================================
+  /*
+  =======================================================
+  MODAL
+  =======================================================
+  */
+
+  const [selectedSalon, setSelectedSalon] =
+    useState<Salon | null>(null);
+
+  /*
+  =======================================================
+  GET GLOW BEAUTY SALON FROM DATABASE
+  =======================================================
+  */
 
   useEffect(() => {
-    const loadGlowBeautySalon = async () => {
-      try {
-        setLoadingSalon(true);
-        setSalonError('');
-
-        const response =
-          await api.get('/salons');
-
-        console.log(
-          'HOME SALONS RESPONSE:',
-          response.data,
-        );
-
-        const data =
-          response.data?.data;
-
-        if (!Array.isArray(data)) {
-          setDatabaseSalon(null);
-          return;
-        }
-
-        /*
-        Find Glow Beauty Salon
-        */
-
-        const glowBeauty =
-          data.find(
-            (salon: DatabaseSalon) =>
-              salon.name
-                ?.trim()
-                .toLowerCase() ===
-              'glow beauty salon',
-          );
-
-        if (!glowBeauty) {
-          setDatabaseSalon(null);
-          return;
-        }
-
-        /*
-        Convert database data
-        */
-
-        const formattedSalon: Salon = {
-          id: glowBeauty.id,
-
-          name:
-            glowBeauty.name ||
-            'Glow Beauty Salon',
-
-          location:
-            glowBeauty.location ||
-            glowBeauty.city ||
-            glowBeauty.address ||
-            'Kumbakonam',
-
-          rating:
-            Number(
-              glowBeauty.rating,
-            ) || 5,
-
-          reviews:
-            Number(
-              glowBeauty.reviewCount ??
-                glowBeauty.reviews,
-            ) || 0,
-
-          category:
-            glowBeauty.category ||
-            'Beauty & Hair',
-
-          image:
-            glowBeauty.image ||
-            'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80',
-
-          status:
-            glowBeauty.status,
-        };
-
-        setDatabaseSalon(
-          formattedSalon,
-        );
-      } catch (error: any) {
-        console.error(
-          'Failed to load Glow Beauty Salon:',
-          error,
-        );
-
-        const message =
-          error?.response?.data?.message;
-
-        setSalonError(
-          Array.isArray(message)
-            ? message.join(', ')
-            : message ||
-                'Unable to load Glow Beauty Salon.',
-        );
-
-        setDatabaseSalon(null);
-      } finally {
-        setLoadingSalon(false);
-      }
-    };
-
     loadGlowBeautySalon();
   }, []);
 
-  // =====================================================
-  // FINAL SALON LIST
-  //
-  // 1. Database Glow Beauty Salon
-  // 2. Style Studio
-  // 3. Elegant Touch
-  // 4. Urban Glow
-  // 5. Blush & Bloom
-  // 6. Royal Shine Salon
-  // =====================================================
+  const loadGlowBeautySalon = async () => {
+    try {
+      setLoadingSalon(true);
+      setSalonError('');
+
+      const response = await api.get('/salons');
+
+      const data =
+        response.data?.data;
+
+      if (!Array.isArray(data)) {
+        setDatabaseSalon(null);
+        return;
+      }
+
+      /*
+      ---------------------------------------------------
+      Find Glow Beauty Salon
+      ---------------------------------------------------
+      */
+
+      const glowBeauty =
+        data.find(
+          (salon: DatabaseSalon) =>
+            salon.name
+              ?.trim()
+              .toLowerCase() ===
+            'glow beauty salon',
+        );
+
+      if (!glowBeauty) {
+        setDatabaseSalon(null);
+        return;
+      }
+
+      /*
+      ---------------------------------------------------
+      Convert database salon to Home Salon format
+      ---------------------------------------------------
+      */
+
+      const formattedSalon: Salon = {
+        id: glowBeauty.id,
+
+        name:
+          glowBeauty.name ||
+          'Glow Beauty Salon',
+
+        location:
+          glowBeauty.location ||
+          'Kumbakonam',
+
+        rating:
+          Number(
+            glowBeauty.rating,
+          ) || 5.0,
+
+        reviews:
+          Number(
+            glowBeauty.reviews,
+          ) || 0,
+
+        category:
+          glowBeauty.category ||
+          'Beauty & Hair',
+
+        image:
+          glowBeauty.image ||
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80',
+
+        status:
+          glowBeauty.status,
+      };
+
+      setDatabaseSalon(
+        formattedSalon,
+      );
+    } catch (error: any) {
+      console.error(
+        'Failed to load Glow Beauty Salon:',
+        error,
+      );
+
+      setSalonError(
+        error?.response?.data?.message ||
+          'Unable to load Glow Beauty Salon.',
+      );
+
+      setDatabaseSalon(null);
+    } finally {
+      setLoadingSalon(false);
+    }
+  };
+
+  /*
+  =======================================================
+  FINAL 6 SALONS
+
+  1. Glow Beauty Salon - Database
+  2. Style Studio
+  3. Elegant Touch
+  4. Urban Glow
+  5. Blush & Bloom
+  6. Royal Shine Salon
+  =======================================================
+  */
 
   const salons = useMemo(() => {
     const result: Salon[] = [];
@@ -318,16 +283,16 @@ function Home() {
       result.push(databaseSalon);
     }
 
-    result.push(
-      ...staticSalons,
-    );
+    result.push(...staticSalons);
 
     return result;
   }, [databaseSalon]);
 
-  // =====================================================
-  // LOCATIONS
-  // =====================================================
+  /*
+  =======================================================
+  LOCATIONS
+  =======================================================
+  */
 
   const locations = useMemo(() => {
     const uniqueLocations =
@@ -346,9 +311,11 @@ function Home() {
     ];
   }, [salons]);
 
-  // =====================================================
-  // FILTER
-  // =====================================================
+  /*
+  =======================================================
+  FILTER
+  =======================================================
+  */
 
   const filteredSalons =
     salons.filter((salon) => {
@@ -381,9 +348,32 @@ function Home() {
       );
     });
 
-  // =====================================================
-  // CONTACT FORM
-  // =====================================================
+  /*
+  =======================================================
+  VIEW DETAILS
+  =======================================================
+  */
+
+  const handleViewDetails = (
+    salon: Salon,
+  ) => {
+    setSelectedSalon(null);
+
+    navigate(
+      `/salon/${salon.id}`,
+      {
+        state: {
+          salon,
+        },
+      },
+    );
+  };
+
+  /*
+  =======================================================
+  CONTACT FORM
+  =======================================================
+  */
 
   const handleContactSubmit = (
     event: React.FormEvent<HTMLFormElement>,
@@ -397,72 +387,41 @@ function Home() {
     event.currentTarget.reset();
   };
 
-  // =====================================================
-  // SCROLL
-  // =====================================================
-
-  const scrollToSection = (
-    id: string,
-  ) => {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({
-        behavior: 'smooth',
-      });
-  };
-
-  // =====================================================
-  // RETURN
-  // =====================================================
-
   return (
     <div className="min-h-screen bg-white text-slate-900">
 
-      {/* =================================================
+      {/* ==================================================
           NAVBAR
-      ================================================= */}
+      ================================================== */}
 
       <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur">
 
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 
-          {/* LOGO */}
-
           <button
-            type="button"
             onClick={() =>
               window.scrollTo({
                 top: 0,
                 behavior: 'smooth',
               })
             }
-            className="flex items-center gap-3"
+            className="flex items-center gap-2"
           >
 
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
-              <Sparkles size={21} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white">
+              <Sparkles size={20} />
             </div>
 
-            <div className="text-left">
-
-              <span className="block text-2xl font-bold tracking-tight">
-                Glow
-                <span className="text-slate-500">
-                  Book
-                </span>
+            <span className="text-2xl font-bold tracking-tight">
+              Glow
+              <span className="text-slate-500">
+                Book
               </span>
-
-              <span className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400 sm:block">
-                Beauty • Booking • Better
-              </span>
-
-            </div>
+            </span>
 
           </button>
 
-          {/* DESKTOP NAV */}
-
-          <nav className="hidden items-center gap-7 lg:flex">
+          <nav className="hidden items-center gap-7 md:flex">
 
             <a
               href="#home"
@@ -508,15 +467,11 @@ function Home() {
 
           </nav>
 
-          {/* AUTH */}
-
           <div className="flex items-center gap-2">
 
             <button
-              type="button"
               onClick={() =>
-                (window.location.href =
-                  '/login')
+                navigate('/login')
               }
               className="rounded-xl px-4 py-2.5 font-semibold text-slate-700 hover:bg-slate-100"
             >
@@ -524,10 +479,8 @@ function Home() {
             </button>
 
             <button
-              type="button"
               onClick={() =>
-                (window.location.href =
-                  '/register')
+                navigate('/register')
               }
               className="rounded-xl bg-slate-950 px-5 py-2.5 font-semibold text-white transition hover:bg-slate-800"
             >
@@ -540,9 +493,9 @@ function Home() {
 
       </header>
 
-      {/* =================================================
+      {/* ==================================================
           HERO
-      ================================================= */}
+      ================================================== */}
 
       <section
         id="home"
@@ -550,8 +503,6 @@ function Home() {
       >
 
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:py-24">
-
-          {/* LEFT */}
 
           <div>
 
@@ -588,8 +539,6 @@ function Home() {
 
               <div className="flex flex-col gap-3 lg:flex-row">
 
-                {/* LOCATION */}
-
                 <div className="flex flex-1 items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
 
                   <MapPin
@@ -598,8 +547,6 @@ function Home() {
                   />
 
                   <select
-                    id="home-location"
-                    name="homeLocation"
                     value={location}
                     onChange={(event) =>
                       setLocation(
@@ -624,8 +571,6 @@ function Home() {
 
                 </div>
 
-                {/* SEARCH */}
-
                 <div className="flex flex-[1.5] items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
 
                   <Search
@@ -634,8 +579,6 @@ function Home() {
                   />
 
                   <input
-                    id="home-search"
-                    name="homeSearch"
                     value={search}
                     onChange={(event) =>
                       setSearch(
@@ -649,23 +592,28 @@ function Home() {
                 </div>
 
                 <button
-                  type="button"
                   onClick={() =>
-                    scrollToSection(
-                      'salons',
-                    )
+                    document
+                      .getElementById(
+                        'salons',
+                      )
+                      ?.scrollIntoView({
+                        behavior:
+                          'smooth',
+                      })
                   }
                   className="flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-7 py-3 font-semibold text-white hover:bg-slate-800"
                 >
+
                   Search
+
                   <ArrowRight size={18} />
+
                 </button>
 
               </div>
 
             </div>
-
-            {/* TRUST */}
 
             <div className="mt-8 flex flex-wrap gap-6 text-sm text-slate-400">
 
@@ -700,26 +648,26 @@ function Home() {
                 className="h-[540px] w-full rounded-[1.5rem] object-cover"
               />
 
-            </div>
+              <div className="absolute bottom-8 left-8 right-8 rounded-2xl bg-white p-5 shadow-xl">
 
-            <div className="absolute bottom-8 left-8 right-8 rounded-2xl bg-white p-5 shadow-xl">
+                <div className="flex items-center justify-between">
 
-              <div className="flex items-center justify-between">
+                  <div>
 
-                <div>
+                    <p className="text-sm text-slate-500">
+                      Featured experience
+                    </p>
 
-                  <p className="text-sm text-slate-500">
-                    Featured experience
-                  </p>
+                    <h3 className="mt-1 text-xl font-bold">
+                      Book your beauty time
+                    </h3>
 
-                  <h3 className="mt-1 text-xl font-bold">
-                    Book your beauty time
-                  </h3>
+                  </div>
 
-                </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-white">
+                    <CalendarCheck size={20} />
+                  </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-white">
-                  <CalendarCheck size={20} />
                 </div>
 
               </div>
@@ -732,9 +680,9 @@ function Home() {
 
       </section>
 
-      {/* =================================================
+      {/* ==================================================
           SALONS
-      ================================================= */}
+      ================================================== */}
 
       <section
         id="salons"
@@ -756,7 +704,8 @@ function Home() {
               </h2>
 
               <p className="mt-3 text-slate-500">
-                Explore our available salons.
+                Explore salons by location and choose the one
+                that fits your style.
               </p>
 
             </div>
@@ -767,7 +716,7 @@ function Home() {
 
           </div>
 
-          {/* LOADING */}
+          {/* DATABASE LOADING */}
 
           {loadingSalon && (
             <div className="mt-9 rounded-3xl bg-white p-8 text-center shadow-sm">
@@ -775,13 +724,13 @@ function Home() {
               <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
 
               <p className="mt-3 text-sm text-slate-500">
-                Loading salons...
+                Loading salon...
               </p>
 
             </div>
           )}
 
-          {/* ERROR */}
+          {/* DATABASE ERROR */}
 
           {!loadingSalon &&
             salonError && (
@@ -790,91 +739,12 @@ function Home() {
               </div>
             )}
 
-          {/* CARDS */}
+          {/* SALON CARDS */}
 
-          {!loadingSalon &&
-            filteredSalons.length > 0 && (
-
-              <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
-                {filteredSalons.map(
-                  (salon) => (
-
-                    <div
-                      key={salon.id}
-                      className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                    >
-
-                      {/* SALON IMAGE */}
-
-                      <div className="h-64 overflow-hidden">
-
-                        <img
-                          src={salon.image}
-                          alt={salon.name}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-
-                      </div>
-
-                      {/* SALON DETAILS */}
-
-                      <div className="p-6">
-
-                        <div className="flex items-start justify-between gap-3">
-
-                          <div>
-
-                            <h3 className="text-xl font-bold text-slate-900">
-                              {salon.name}
-                            </h3>
-
-                            <p className="mt-1 text-sm text-slate-500">
-                              {salon.category}
-                            </p>
-
-                          </div>
-
-                          <div className="flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 text-sm font-bold">
-
-                            <Star
-                              size={14}
-                              fill="currentColor"
-                            />
-
-                            {salon.rating.toFixed(1)}
-
-                          </div>
-
-                        </div>
-
-                        <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
-
-                          <MapPin size={16} />
-
-                          {salon.location}
-
-                        </div>
-
-                        <p className="mt-2 text-sm text-slate-400">
-                          {salon.reviews} reviews
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  ),
-                )}
-
-              </div>
-            )}
-
-          {/* NO RESULTS */}
-
-          {!loadingSalon &&
+          {!loadingSalon && (
             filteredSalons.length ===
-              0 && (
+            0 ? (
+
               <div className="mt-10 rounded-3xl bg-white p-12 text-center shadow-sm">
 
                 <Search
@@ -891,98 +761,191 @@ function Home() {
                 </p>
 
               </div>
-            )}
+
+            ) : (
+
+              <div className="mt-9 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+                {filteredSalons.map(
+                  (salon) => (
+
+                    <article
+                      key={
+                        salon.id
+                      }
+                      onClick={() => navigate('/login')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          navigate('/login');
+                        }
+                      }}
+                      className="group cursor-pointer overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                    >
+
+                      {/* IMAGE */}
+
+                      <div className="relative h-56 overflow-hidden">
+
+                        <img
+                          src={
+                            salon.image
+                          }
+                          alt={
+                            salon.name
+                          }
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+
+                        <div className="absolute left-4 top-4 rounded-xl bg-white/95 px-3 py-2 text-xs font-bold shadow">
+                          {
+                            salon.category
+                          }
+                        </div>
+
+                        <div className="absolute right-4 top-4 flex items-center gap-1 rounded-xl bg-white/95 px-3 py-2 text-sm font-bold shadow">
+
+                          <Star
+                            size={15}
+                            fill="currentColor"
+                          />
+
+                          {salon.rating}
+
+                        </div>
+
+                      </div>
+
+                      {/* DETAILS */}
+
+                      <div className="p-6">
+
+                        <h3 className="text-xl font-bold">
+                          {
+                            salon.name
+                          }
+                        </h3>
+
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+
+                          <MapPin
+                            size={16}
+                          />
+
+                          <span>
+                            {
+                              salon.location
+                            }
+                          </span>
+
+                          <span>
+                            •
+                          </span>
+
+                          <span>
+                            {
+                              salon.reviews
+                            }{' '}
+                            reviews
+                          </span>
+
+                        </div>
+
+                        {/* VIEW DETAILS ONLY */}
+
+                        <div className="mt-6">
+
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate('/login');
+                            }}
+                            className="w-full rounded-xl bg-slate-950 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                          >
+                            View Details
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    </article>
+
+                  ),
+                )}
+
+              </div>
+
+            )
+          )}
 
         </div>
 
       </section>
 
-      {/* =================================================
-          SERVICES
-      ================================================= */}
 
+      {/* ==================================================
+          SERVICES
+      ================================================== */}
       <section
         id="services"
         className="bg-white px-6 py-20"
       >
-
         <div className="mx-auto max-w-7xl">
-
-          <div className="text-center">
-
-            <p className="font-semibold text-slate-500">
-              OUR SERVICES
-            </p>
-
-            <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-              Beauty services made for you
-            </h2>
-
-            <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-500">
-              Explore popular salon services and find
-              the perfect experience for your next visit.
-            </p>
-
+          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div>
+              <p className="font-semibold text-slate-500">POPULAR SERVICES</p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+                Explore our services
+              </h2>
+              <p className="mt-3 text-slate-500">
+                Choose a service to continue to login and start booking.
+              </p>
+            </div>
+            <div className="rounded-xl bg-slate-50 px-4 py-2 text-sm font-semibold">
+              6 services
+            </div>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
-            {services.map(
-              (service) => (
-
-                <div
-                  key={service.name}
-                  className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                >
-
-                  <div className="h-56 overflow-hidden">
-
-                    <img
-                      src={service.image}
-                      alt={service.name}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-
-                  </div>
-
-                  <div className="p-6">
-
-                    <div className="flex items-start gap-4">
-
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
-                        <Scissors size={19} />
-                      </div>
-
-                      <div>
-
-                        <h3 className="text-xl font-bold">
-                          {service.name}
-                        </h3>
-
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
-                          {service.description}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
+          <div className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => (
+              <article
+                key={service.name}
+                onClick={() => navigate('/login')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    navigate('/login');
+                  }
+                }}
+                className="group cursor-pointer rounded-3xl border border-slate-200 bg-slate-50 p-7 transition hover:-translate-y-1 hover:bg-white hover:shadow-xl"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950 text-white">
+                  <Sparkles size={21} />
                 </div>
-
-              ),
-            )}
-
+                <p className="mt-5 text-sm font-semibold text-slate-500">
+                  {service.category}
+                </p>
+                <h3 className="mt-2 text-xl font-bold">
+                  {service.name}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-500">
+                  {service.description}
+                </p>
+                <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-950">
+                  Login to continue <ArrowRight size={16} />
+                </div>
+              </article>
+            ))}
           </div>
-
         </div>
-
       </section>
 
-      {/* =================================================
+      {/* ==================================================
           FEATURES
-      ================================================= */}
+      ================================================== */}
 
       <section
         id="features"
@@ -1016,16 +979,19 @@ function Home() {
                 title: 'Discover',
                 text: 'Search salons by location and explore their services.',
               },
+
               {
                 icon: Users,
                 title: 'Choose stylist',
                 text: 'Select the staff member you prefer for your appointment.',
               },
+
               {
                 icon: Clock3,
                 title: 'Find a time',
                 text: 'Check availability and choose a convenient time slot.',
               },
+
               {
                 icon: CalendarCheck,
                 title: 'Manage bookings',
@@ -1039,24 +1005,35 @@ function Home() {
 
                 return (
                   <div
-                    key={feature.title}
-                    className="rounded-3xl border border-slate-200 p-7 transition hover:shadow-lg"
+                    key={
+                      feature.title
+                    }
+                    className="rounded-3xl border border-slate-200 p-7"
                   >
 
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950 text-white">
-                      <Icon size={21} />
+
+                      <Icon
+                        size={21}
+                      />
+
                     </div>
 
                     <h3 className="mt-5 text-lg font-bold">
-                      {feature.title}
+                      {
+                        feature.title
+                      }
                     </h3>
 
                     <p className="mt-3 text-sm leading-6 text-slate-500">
-                      {feature.text}
+                      {
+                        feature.text
+                      }
                     </p>
 
                   </div>
                 );
+
               },
             )}
 
@@ -1066,9 +1043,9 @@ function Home() {
 
       </section>
 
-      {/* =================================================
+      {/* ==================================================
           HOW IT WORKS
-      ================================================= */}
+      ================================================== */}
 
       <section
         id="how"
@@ -1097,11 +1074,13 @@ function Home() {
                 title: 'Find a salon',
                 text: 'Choose your location and discover salons that match your needs.',
               },
+
               {
                 number: '02',
                 title: 'Choose your appointment',
                 text: 'Select a service, stylist, date and available time.',
               },
+
               {
                 number: '03',
                 title: 'Book & relax',
@@ -1111,20 +1090,28 @@ function Home() {
               (step) => (
 
                 <div
-                  key={step.number}
-                  className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
+                  key={
+                    step.number
+                  }
+                  className="rounded-3xl border border-slate-200 bg-white p-8"
                 >
 
                   <span className="text-4xl font-bold text-slate-300">
-                    {step.number}
+                    {
+                      step.number
+                    }
                   </span>
 
                   <h3 className="mt-6 text-xl font-bold">
-                    {step.title}
+                    {
+                      step.title
+                    }
                   </h3>
 
                   <p className="mt-3 leading-7 text-slate-500">
-                    {step.text}
+                    {
+                      step.text
+                    }
                   </p>
 
                 </div>
@@ -1138,9 +1125,9 @@ function Home() {
 
       </section>
 
-      {/* =================================================
+      {/* ==================================================
           CONTACT
-      ================================================= */}
+      ================================================== */}
 
       <section
         id="contact"
@@ -1150,8 +1137,6 @@ function Home() {
         <div className="mx-auto max-w-7xl">
 
           <div className="grid gap-12 lg:grid-cols-2">
-
-            {/* CONTACT INFO */}
 
             <div>
 
@@ -1164,9 +1149,8 @@ function Home() {
               </h2>
 
               <p className="mt-5 max-w-xl text-lg leading-8 text-slate-500">
-                Have a question about GlowBook,
-                salon bookings, or managing your
-                salon? Get in touch with our team.
+                Have a question about GlowBook, salon bookings,
+                or managing your salon? Get in touch with our team.
               </p>
 
               <div className="mt-9 space-y-6">
@@ -1256,19 +1240,14 @@ function Home() {
 
                 <div>
 
-                  <label
-                    htmlFor="contact-name"
-                    className="mb-2 block text-sm font-semibold"
-                  >
+                  <label className="mb-2 block text-sm font-semibold">
                     Name
                   </label>
 
                   <input
-                    id="contact-name"
-                    name="name"
                     type="text"
                     placeholder="Your name"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slate-500"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
                     required
                   />
 
@@ -1276,19 +1255,14 @@ function Home() {
 
                 <div>
 
-                  <label
-                    htmlFor="contact-email"
-                    className="mb-2 block text-sm font-semibold"
-                  >
+                  <label className="mb-2 block text-sm font-semibold">
                     Email
                   </label>
 
                   <input
-                    id="contact-email"
-                    name="email"
                     type="email"
                     placeholder="you@example.com"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slate-500"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
                     required
                   />
 
@@ -1296,19 +1270,14 @@ function Home() {
 
                 <div>
 
-                  <label
-                    htmlFor="contact-message"
-                    className="mb-2 block text-sm font-semibold"
-                  >
+                  <label className="mb-2 block text-sm font-semibold">
                     Message
                   </label>
 
                   <textarea
-                    id="contact-message"
-                    name="message"
                     rows={5}
                     placeholder="How can we help?"
-                    className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slate-500"
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
                     required
                   />
 
@@ -1316,7 +1285,7 @@ function Home() {
 
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-slate-950 py-3.5 font-semibold text-white hover:bg-slate-800"
+                  className="w-full rounded-xl bg-slate-950 py-3.5 font-semibold text-white transition hover:bg-slate-800"
                 >
                   Send Message
                 </button>
@@ -1331,9 +1300,9 @@ function Home() {
 
       </section>
 
-      {/* =================================================
+      {/* ==================================================
           CTA
-      ================================================= */}
+      ================================================== */}
 
       <section className="px-6 py-20">
 
@@ -1354,10 +1323,8 @@ function Home() {
           </p>
 
           <button
-            type="button"
             onClick={() =>
-              (window.location.href =
-                '/register')
+              navigate('/register')
             }
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 font-bold text-slate-950 hover:bg-slate-200"
           >
@@ -1369,120 +1336,109 @@ function Home() {
 
       </section>
 
-      {/* =================================================
-          FOOTER
-      ================================================= */}
+      {/* ==================================================
+          SALON DETAILS MODAL
+      ================================================== */}
 
-      <footer className="bg-slate-950 px-6 py-12 text-slate-400">
+      {selectedSalon && (
 
-        <div className="mx-auto max-w-7xl">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-5 backdrop-blur-sm"
+          onClick={() =>
+            setSelectedSalon(null)
+          }
+        >
 
-          <div className="grid gap-10 md:grid-cols-4">
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
 
-            {/* BRAND */}
+            <img
+              src={
+                selectedSalon.image
+              }
+              alt={
+                selectedSalon.name
+              }
+              className="h-64 w-full object-cover"
+            />
 
-            <div className="md:col-span-2">
+            <div className="p-7">
 
-              <div className="flex items-center gap-3">
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-950">
-                  <Sparkles size={21} />
-                </div>
+              <div className="flex items-start justify-between gap-4">
 
                 <div>
 
-                  <p className="text-2xl font-bold text-white">
-                    GlowBook
+                  <p className="text-sm font-semibold text-slate-500">
+                    {
+                      selectedSalon.category
+                    }
                   </p>
 
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Beauty • Booking • Better
-                  </p>
+                  <h2 className="mt-1 text-2xl font-bold">
+                    {
+                      selectedSalon.name
+                    }
+                  </h2>
+
+                </div>
+
+                <div className="flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold">
+
+                  <Star
+                    size={15}
+                    fill="currentColor"
+                  />
+
+                  {
+                    selectedSalon.rating
+                  }
 
                 </div>
 
               </div>
 
-              <p className="mt-5 max-w-md text-sm leading-7 text-slate-500">
-                Discover trusted salons, explore beauty
-                services and manage your appointments
-                easily with GlowBook.
-              </p>
+              <div className="mt-4 flex items-center gap-2 text-slate-500">
 
-            </div>
+                <MapPin size={17} />
 
-            {/* QUICK LINKS */}
-
-            <div>
-
-              <h3 className="font-bold text-white">
-                Quick Links
-              </h3>
-
-              <div className="mt-4 space-y-3 text-sm">
-
-                <a
-                  href="#home"
-                  className="block hover:text-white"
-                >
-                  Home
-                </a>
-
-                <a
-                  href="#salons"
-                  className="block hover:text-white"
-                >
-                  Salons
-                </a>
-
-                <a
-                  href="#services"
-                  className="block hover:text-white"
-                >
-                  Services
-                </a>
-
-                <a
-                  href="#contact"
-                  className="block hover:text-white"
-                >
-                  Contact
-                </a>
+                {
+                  selectedSalon.location
+                }
 
               </div>
 
-            </div>
+              <p className="mt-5 leading-7 text-slate-500">
+                Explore salon services, choose your preferred
+                stylist and find an available appointment time.
+              </p>
 
-            {/* ACCOUNT */}
+              <div className="mt-6 flex gap-3">
 
-            <div>
-
-              <h3 className="font-bold text-white">
-                Account
-              </h3>
-
-              <div className="mt-4 space-y-3 text-sm">
-
-                <a
-                  href="/login"
-                  className="block hover:text-white"
+                <button
+                  onClick={() =>
+                    setSelectedSalon(
+                      null,
+                    )
+                  }
+                  className="flex-1 rounded-xl border border-slate-200 py-3 font-semibold hover:bg-slate-100"
                 >
-                  Login
-                </a>
+                  Close
+                </button>
 
-                <a
-                  href="/register"
-                  className="block hover:text-white"
+                <button
+                  onClick={() =>
+                    handleViewDetails(
+                      selectedSalon,
+                    )
+                  }
+                  className="flex-1 rounded-xl bg-slate-950 py-3 font-semibold text-white hover:bg-slate-800"
                 >
-                  Create Account
-                </a>
-
-                <a
-                  href="#how"
-                  className="block hover:text-white"
-                >
-                  How it works
-                </a>
+                  View Salon
+                </button>
 
               </div>
 
@@ -1490,21 +1446,58 @@ function Home() {
 
           </div>
 
-          <div className="mt-10 border-t border-slate-800 pt-6">
+        </div>
 
-            <div className="flex flex-col justify-between gap-3 text-sm md:flex-row">
+      )}
 
-              <p>
-                © 2026 GlowBook. All rights reserved.
-              </p>
+      {/* ==================================================
+          FOOTER
+      ================================================== */}
 
-              <p className="text-slate-600">
-                Smart salon booking made simple.
-              </p>
+      <footer className="bg-slate-950 px-6 py-10 text-slate-400">
 
-            </div>
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 md:flex-row">
+
+          <div>
+
+            <p className="text-xl font-bold text-white">
+              GlowBook
+            </p>
+
+            <p className="mt-1 text-sm">
+              Smart salon booking made simple.
+            </p>
 
           </div>
+
+          <div className="flex gap-6 text-sm">
+
+            <a
+              href="#home"
+              className="hover:text-white"
+            >
+              Home
+            </a>
+
+            <a
+              href="#salons"
+              className="hover:text-white"
+            >
+              Salons
+            </a>
+
+            <a
+              href="#contact"
+              className="hover:text-white"
+            >
+              Contact
+            </a>
+
+          </div>
+
+          <p className="text-sm">
+            © 2026 GlowBook. All rights reserved.
+          </p>
 
         </div>
 

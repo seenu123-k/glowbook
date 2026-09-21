@@ -6,6 +6,8 @@ import {
   ChevronRight,
   CircleUserRound,
   Clock,
+  Eye,
+  EyeOff,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -319,6 +321,9 @@ export default function AdminDashboard() {
   const [userForm, setUserForm] =
     useState<UserForm>(emptyUserForm);
 
+  const [showUserPassword, setShowUserPassword] =
+    useState(false);
+
   const [salonForm, setSalonForm] =
     useState<SalonForm>(emptySalonForm);
 
@@ -508,6 +513,7 @@ export default function AdminDashboard() {
   const openAddUser = () => {
     setEditingUserId(null);
     setUserForm(emptyUserForm);
+    setShowUserPassword(false);
     setShowUserForm(true);
   };
 
@@ -522,6 +528,7 @@ export default function AdminDashboard() {
       role: user.role,
     });
 
+    setShowUserPassword(false);
     setShowUserForm(true);
   };
 
@@ -1413,19 +1420,47 @@ export default function AdminDashboard() {
             />
 
             {!editingUserId && (
-              <Input
-                required
-                type="password"
-                placeholder="Password"
-                value={userForm.password}
-                onChange={(e) =>
-                  setUserForm({
-                    ...userForm,
-                    password:
-                      e.target.value,
-                  })
-                }
-              />
+              <div className="relative">
+                <Input
+                  required
+                  type={
+                    showUserPassword
+                      ? 'text'
+                      : 'password'
+                  }
+                  placeholder="Password"
+                  value={userForm.password}
+                  onChange={(e) =>
+                    setUserForm({
+                      ...userForm,
+                      password:
+                        e.target.value,
+                    })
+                  }
+                  className="pr-12"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowUserPassword(
+                      (previous) => !previous,
+                    )
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
+                  aria-label={
+                    showUserPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
+                >
+                  {showUserPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
             )}
 
             <Input

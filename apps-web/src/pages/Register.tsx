@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  Eye,
+  EyeOff,
   Lock,
   Mail,
   Phone,
@@ -20,6 +22,8 @@ function Register() {
     phone: '',
     password: '',
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -75,6 +79,8 @@ function Register() {
         phone: '',
         password: '',
       });
+
+      setShowPassword(false);
 
       setTimeout(() => {
         navigate('/login', {
@@ -325,7 +331,11 @@ function Register() {
                     />
 
                     <input
-                      type="password"
+                      type={
+                        showPassword
+                          ? 'text'
+                          : 'password'
+                      }
                       value={form.password}
                       onChange={(e) =>
                         updateField(
@@ -339,6 +349,29 @@ function Register() {
                       className="w-full outline-none"
                       required
                     />
+
+                    {/* SHOW / HIDE PASSWORD */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword(
+                          (previous) => !previous,
+                        )
+                      }
+                      className="shrink-0 text-slate-400 transition hover:text-slate-700"
+                      aria-label={
+                        showPassword
+                          ? 'Hide password'
+                          : 'Show password'
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff size={19} />
+                      ) : (
+                        <Eye size={19} />
+                      )}
+                    </button>
 
                   </div>
 
