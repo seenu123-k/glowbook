@@ -112,12 +112,42 @@ const staticSalons: Salon[] = [
 
 
 const services = [
-  { name: 'Haircut', category: 'Hair & Styling', description: 'Professional haircut and styling.' },
-  { name: 'Hair Styling', category: 'Hair & Styling', description: 'Modern styling for every occasion.' },
-  { name: 'Facial', category: 'Skin Care', description: 'Relaxing facial and skin care treatment.' },
-  { name: 'Hair Color', category: 'Hair & Styling', description: 'Premium hair coloring and highlights.' },
-  { name: 'Bridal Styling', category: 'Bridal Beauty', description: 'Complete styling for your special day.' },
-  { name: 'Spa', category: 'Beauty & Wellness', description: 'Relax and refresh with a spa treatment.' },
+  {
+    name: 'Haircut',
+    category: 'Hair & Styling',
+    description: 'Professional haircut and styling.',
+    image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Hair Styling',
+    category: 'Hair & Styling',
+    description: 'Modern styling for every occasion.',
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Facial',
+    category: 'Skin Care',
+    description: 'Relaxing facial and skin care treatment.',
+    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Hair Color',
+    category: 'Hair & Styling',
+    description: 'Premium hair coloring and highlights.',
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Bridal Styling',
+    category: 'Bridal Beauty',
+    description: 'Complete styling for your special day.',
+    image: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Spa',
+    category: 'Beauty & Wellness',
+    description: 'Relax and refresh with a spa treatment.',
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80',
+  },
 ];
 
 function Home() {
